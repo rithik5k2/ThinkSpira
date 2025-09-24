@@ -1,6 +1,7 @@
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import User from "../models/User.js";
 
-module.exports = function (passport) {
+export default function (passport) {
   passport.use(
     new GoogleStrategy(
       {
@@ -8,10 +9,37 @@ module.exports = function (passport) {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: "/auth/google/callback",
       },
-      (accessToken, refreshToken, profile, done) => {
-        // Save accessToken so assignments route can use it
-        profile.accessToken = accessToken;
-        return done(null, profile);
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Check if user exists in database
+          let user = await User.findOne({ googleId: profile.id });
+          
+          if (!user) {
+            // Create new user
+            user = new User({
+              googleId: profile.id,
+              name: profile.displayName,
+              email: profile.emails[0].value,
+              accessToken: accessToken,
+            });
+            await user.save();
+          } else {
+            // Update access token for existing user
+            user.accessToken = accessToken;
+            await user.save();
+          }
+          
+          // Add accessToken to the profile for session storage
+          const userProfile = {
+            ...profile,
+            accessToken: accessToken,
+            _id: user._id
+          };
+          
+          return done(null, userProfile);
+        } catch (error) {
+          return done(error, null);
+        }
       }
     )
   );
@@ -23,4 +51,4 @@ module.exports = function (passport) {
   passport.deserializeUser((obj, done) => {
     done(null, obj);
   });
-};
+}

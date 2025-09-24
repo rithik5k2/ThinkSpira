@@ -1,44 +1,66 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const rateLimit = require("express-rate-limit");
-const passport = require("passport");
-const session = require("express-session");
-const bodyParser = require("body-parser");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
+import passport from "passport";
+import session from "express-session";
+import bodyParser from "body-parser";
+import connectDB from "./dbms.js";
+import assignmentRoutes from "./routes/assignment.js";
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/user.js";
+import configurePassport from "./config/passport.js";
 
 dotenv.config();
-require("./config/passport")(passport); // Passport config
+
+connectDB();
 
 const app = express();
 
 // Rate limiter
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
 app.use(limiter);
 
-// Middleware
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cors());
 
-// Express session
+// CORS configuration
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
+// Session configuration
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
   })
 );
 
-// Passport middleware
+// Passport configuration
+configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
-app.use("/api/assignments", require("./routes/assignment"));
-app.use("/auth", require("./routes/auth")); // <-- separate file
+app.use("/api/assignments", assignmentRoutes);
+app.use("/auth", authRoutes);
+app.use("/api/users", userRoutes);
+
+// Health check route
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", message: "Server is running" });
+});
 
 // Error handler
 app.use((err, req, res, next) => {

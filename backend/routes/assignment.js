@@ -13,38 +13,85 @@ router.get("/", async (req, res) => {
     return res.status(401).json({ message: "Not logged in" });
   }
 
+  console.log("=== 🚀 STARTING ASSIGNMENTS FETCH ===");
+  console.log("🔑 User:", req.user.displayName);
+  console.log("📧 Email:", req.user.emails?.[0]?.value);
+
   try {
     const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
     auth.setCredentials({ access_token: req.user.accessToken });
 
     const classroom = google.classroom({ version: "v1", auth });
 
-    // Fetch all courses
+    // 1. Test authentication first
+    console.log("🔐 Testing Google authentication...");
+    const oauth2 = google.oauth2({ version: 'v2', auth });
+    const profile = await oauth2.userinfo.get();
+    console.log("✅ Authenticated as:", profile.data.email);
+
+    // 2. Fetch all courses (remove teacherId filter to get all enrolled courses)
+    console.log("📚 Fetching courses...");
     const coursesRes = await classroom.courses.list();
     const courses = coursesRes.data.courses || [];
+    
+    console.log(`✅ Found ${courses.length} courses:`);
+    courses.forEach((course, index) => {
+      console.log(`   ${index + 1}. ${course.name} (${course.courseState})`);
+    });
 
-    // Fetch all coursework
+    if (courses.length === 0) {
+      console.log("ℹ️ No courses found for this user");
+      return res.status(200).json([]); // Return empty array instead of error
+    }
+
+    // 3. Fetch coursework for each course with error handling
+    console.log("📝 Fetching coursework...");
     const assignmentsPromises = courses.map(async (course) => {
-      const worksRes = await classroom.courses.courseWork.list({
-        courseId: course.id,
-      });
+      try {
+        console.log(`   🔍 Checking: ${course.name}`);
+        const worksRes = await classroom.courses.courseWork.list({
+          courseId: course.id,
+        });
 
-      const works = worksRes.data.courseWork || [];
-      return works.map((w) => ({
-        course: course.name,
-        title: w.title,
-        dueDate: w.dueDate,
-        dueTime: w.dueTime,
-      }));
+        const works = worksRes.data.courseWork || [];
+        console.log(`   ✅ Found ${works.length} assignments in ${course.name}`);
+        
+        return works.map((w) => ({
+          course: course.name,
+          title: w.title,
+          dueDate: w.dueDate,
+          dueTime: w.dueTime,
+        }));
+      } catch (error) {
+        console.error(`   ❌ Error in ${course.name}:`, error.message);
+        return []; // Return empty array for this course if error
+      }
     });
 
     const assignmentsArrays = await Promise.all(assignmentsPromises);
     const allAssignments = assignmentsArrays.flat();
 
+    console.log(`🎯 TOTAL ASSIGNMENTS: ${allAssignments.length}`);
+    
+    // Log each assignment found
+    allAssignments.forEach((assignment, index) => {
+      console.log(`   ${index + 1}. ${assignment.course}: ${assignment.title}`);
+    });
+
+    console.log("=== ✅ ASSIGNMENTS FETCH COMPLETE ===");
     res.status(200).json(allAssignments);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error fetching assignments" });
+    console.error("❌ ERROR fetching assignments:", {
+      message: err.message,
+      code: err.code,
+      response: err.response?.data
+    });
+    
+    res.status(500).json({ 
+      message: "Error fetching assignments",
+      error: err.message 
+    });
   }
 });
 
