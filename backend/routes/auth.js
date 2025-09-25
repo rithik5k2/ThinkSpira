@@ -21,12 +21,12 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", { 
-    failureRedirect: "http://localhost:3000/",
+    failureRedirect: "http://localhost:3000/login", // If login fails
     session: true 
   }),
   async (req, res) => {
     try {
-      // Ensure user is saved to database
+      // Save/update user in DB
       if (req.user && req.user.id) {
         await User.findOneAndUpdate(
           { googleId: req.user.id },
@@ -38,10 +38,11 @@ router.get(
           { upsert: true, new: true }
         );
       }
-      res.redirect("http://localhost:3000");
+      // ✅ Redirect directly to Dashboard
+      res.redirect("http://localhost:3000/u/dashboard");
     } catch (error) {
       console.error("Error in callback:", error);
-      res.redirect("http://localhost:3000");
+      res.redirect("http://localhost:3000/login");
     }
   }
 );
@@ -52,7 +53,6 @@ router.get("/user", (req, res) => {
     return res.status(401).json({ message: "Not logged in" });
   }
   
-  // Format user data for frontend
   const userData = {
     _id: req.user._id,
     googleId: req.user.id || req.user.googleId,

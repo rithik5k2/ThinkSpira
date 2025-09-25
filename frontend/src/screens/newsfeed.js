@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import "./newsfeed.css"; // Import the CSS file
+import { motion, AnimatePresence } from "framer-motion";
+import "./newsfeed.css";
 
 function Newsfeed({ user }) {
   const [news, setNews] = useState([]);
@@ -37,83 +38,122 @@ function Newsfeed({ user }) {
     }
   };
 
-  const handleFetch = () => {
-    fetchNews(query, maxResults);
-  };
-
   return (
-    <div className="newsfeed-container">
-      <h1 className="newsfeed-title">📰 News Search</h1>
+    <motion.div
+      className="newsfeed-container"
+      initial={{ opacity: 0, y: 25 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <h1 className="newsfeed-title">📰 Explore the Latest News</h1>
 
       {/* Search Form */}
-      <div className="search-form">
-        <div className="search-form-content">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter search topic (e.g., java, python, AI)"
-            className="search-input"
-          />
-          <select
-            value={maxResults}
-            onChange={(e) => setMaxResults(parseInt(e.target.value))}
-            className="results-select"
-          >
-            <option value={3}>3 results</option>
-            <option value={5}>5 results</option>
-            <option value={8}>8 results</option>
-            <option value={10}>10 results</option>
-          </select>
-          <button onClick={handleFetch} className="search-button">
-            Fetch News
-          </button>
-        </div>
-      </div>
+      <motion.div
+        className="search-form"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Enter topic (e.g., AI, Java, Startups)"
+          className="search-input"
+        />
+        <select
+          value={maxResults}
+          onChange={(e) => setMaxResults(parseInt(e.target.value))}
+          className="results-select"
+        >
+          <option value={3}>3 results</option>
+          <option value={5}>5 results</option>
+          <option value={8}>8 results</option>
+          <option value={10}>10 results</option>
+        </select>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => fetchNews(query, maxResults)}
+          className="search-button"
+        >
+          Fetch News
+        </motion.button>
+      </motion.div>
 
+      {/* Loading */}
       {loading && (
-        <div className="loading-container">
+        <motion.div
+          className="loading-container"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           <h2 className="loading-title">Loading latest news...</h2>
           <p className="loading-text loading-pulse">
             Fetching articles about "{query}"
           </p>
-        </div>
+        </motion.div>
       )}
 
+      {/* Error */}
       {error && !loading && (
-        <div className="error-message">⚠️ {error}</div>
+        <motion.div
+          className="error-message"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          ⚠️ {error}
+        </motion.div>
       )}
 
-      {!loading && news.length > 0 && (
-        <>
-          <h2 className="results-title">Results for: "{query}"</h2>
-          <div className="news-grid">
-            {news.map((article, index) => (
-              <div key={index} className="news-article">
-                <h3 className="article-title">{article.title}</h3>
-                <p className="article-description">{article.description}</p>
-                {article.url && article.url !== "#" && (
-                  <a
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="article-link"
-                  >
-                    Read full article →
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {/* Results */}
+      <AnimatePresence>
+        {!loading && news.length > 0 && (
+          <>
+            <h2 className="results-title">Results for: "{query}"</h2>
+            <div className="news-grid">
+              {news.map((article, index) => (
+                <motion.div
+                  key={index}
+                  className="news-article"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <h3 className="article-title">{article.title}</h3>
+                  <p className="article-description">
+                    {article.description || "No description available"}
+                  </p>
+                  {article.url && article.url !== "#" && (
+                    <motion.a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="article-link"
+                      whileHover={{ x: 5 }}
+                    >
+                      Read full article →
+                    </motion.a>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
+      </AnimatePresence>
 
+      {/* No results */}
       {!loading && news.length === 0 && (
-        <div className="no-results">
+        <motion.div
+          className="no-results"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
           No news articles found. Try a different search term.
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

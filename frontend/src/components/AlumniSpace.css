@@ -1,0 +1,148 @@
+.alumni-pro-container {
+  font-family: "Segoe UI", sans-serif;
+  padding: 30px;
+  background: linear-gradient(135deg, #eef2f3, #8e9eab);
+  min-height: 100vh;
+  color: #222;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.glass-card h2 {
+  margin-bottom: 16px;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+/* Alumni Profiles */
+.alumni-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.alumni-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 15px;
+  flex: 1 1 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alumni-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.alumni-card h3 {
+  margin-bottom: 6px;
+  color: #1a237e;
+}
+
+.alumni-card span {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Sessions */
+.session-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.session-list li {
+  background: #f7f9fc;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.session-form input {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.session-form button {
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.session-form button:hover {
+  background: #125a9c;
+}
+
+/* Interactions */
+.interaction-list {
+  margin-bottom: 12px;
+}
+
+.interaction-card {
+  background: #fafafa;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border-left: 4px solid #1976d2;
+}
+
+.interaction-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1976d2;
+}
+
+.interaction-form textarea {
+  width: 100%;
+  height: 70px;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: none;
+}
+
+.interaction-form button {
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.interaction-form button:hover {
+  background: #2e7d32;
+}

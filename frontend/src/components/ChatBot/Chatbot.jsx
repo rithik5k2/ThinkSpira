@@ -69,11 +69,11 @@ function Chatbot() {
   const messagesEndRef = useRef(null);
 
   // Initial bot message
-  useEffect(() => {
-    setTimeout(() => {
-      addBotMessage("Hello! I'm your student assistant. How can I help you today?");
-    }, 1000);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     addBotMessage("Hello! I'm your student assistant. How can I help you today?");
+  //   }, 1000);
+  // }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

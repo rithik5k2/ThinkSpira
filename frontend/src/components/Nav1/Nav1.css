@@ -15,7 +15,7 @@
 
 .hexagon-icon {
   position: absolute;
-  top: 50%;  /* center vertically */
+  top: 50%; /* center vertically */
   left: 50%; /* center horizontally */
   transform: translate(-50%, -50%);
   width: 40px;
@@ -55,6 +55,16 @@
   color: #333;
 }
 
-.inner-shine{
-  background-color : transparent
+.inner-shine {
+  background-color: transparent;
+}
+.thinkspira-text {
+  position: absolute;
+  top: 42%;
+  left: 85px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f0f0f0;
+  white-space: nowrap;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }

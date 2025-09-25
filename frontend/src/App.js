@@ -8,6 +8,7 @@ import {
   Link,
 } from "react-router-dom";
 import Layout from "./components/Layout";
+
 import "./App.css";
 import Home from "./Home";
 import Login from "./components/Login/Login";
@@ -17,8 +18,9 @@ import AuthProvider from "./ProtectedRoutes/AuthContext";
 import Dashboard from "./screens/dashboard";
 import GroupChat from "./components/GroupChat";
 import LayOut2 from "./components/LayOut2";
-import Chatbot from "./components/Chatbot";
+import Chatbot from "./components/ChatBot/Chatbot";
 import Calendar from "./components/calender"; // fixed casing
+import AlumniSpace from "./components/AlumniSpace";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -145,6 +147,7 @@ function App() {
             <Route path="newsfeed" element={<NewsFeed />} />
             <Route path="groupchat" element={<GroupChat />} />
             <Route path="chatbot" element={<Chatbot />} />
+            <Route path="alumini" element={<AlumniSpace/>}/>
           </Route>
 
           {/* Google Classroom Flow */}

@@ -1,10 +1,12 @@
 // Home.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import './Home.css';
 
 const Home = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate(); // ✅ useNavigate at the top level
 
   const features = [
     {
@@ -60,17 +62,20 @@ const Home = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
-    }, 2000); // slowed down from 4000 → 6000 ms
+    }, 4000); // smoother transition speed
 
     return () => clearInterval(interval);
   }, [features.length]);
 
-  // Show animation
+  // ✅ Fixed getStarted
+  const getStarted = () => {
+    navigate("/login");
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 1000);
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -83,7 +88,7 @@ const Home = () => {
           <h1 className="hero-title">EduTech Connect</h1>
           <p className="hero-subtitle">Revolutionizing education through AI-powered learning and community collaboration</p>
           <div className="hero-buttons">
-            <button className="btn-primary pulse">Get Started</button>
+            <button className="btn-primary pulse" onClick={getStarted}>Get Started</button>
             <button className="btn-secondary">Learn More</button>
           </div>
         </div>
@@ -104,9 +109,7 @@ const Home = () => {
                 key={index}
                 className={`feature-tab ${activeFeature === index ? 'active' : ''}`}
                 onClick={() => setActiveFeature(index)}
-                style={{ 
-                  background: activeFeature === index ? feature.gradient : 'transparent'
-                }}
+                style={{ background: activeFeature === index ? feature.gradient : 'transparent' }}
               >
                 <i className={feature.icon}></i>
                 <span>{feature.title}</span>
@@ -118,9 +121,7 @@ const Home = () => {
           <div className="feature-content-wrapper">
             <div 
               className="feature-content"
-              style={{ 
-                transform: `translateX(-${activeFeature * 100}%)`
-              }}
+              style={{ transform: `translateX(-${activeFeature * 100}%)` }}
             >
               {features.map((feature, index) => (
                 <div key={index} className="feature-slide" style={{ background: feature.gradient }}>
