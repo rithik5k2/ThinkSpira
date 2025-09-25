@@ -48,14 +48,12 @@ function Chatbot() {
     setMessages((prev) => [...prev, { text: message, isUser }]);
   };
 
- 
 const handleSend = async () => {
   if (!inputValue.trim()) return;
 
   const userMessage = inputValue;
   addMessage(userMessage, true);
   setInputValue("");
-
   setIsTyping(true);
 
   try {
@@ -66,54 +64,52 @@ const handleSend = async () => {
     });
 
     const data = await res.json();
-    console.log("IBM Response:", data);
 
     let botMessage = "";
+    try {
+      // 🟢 Granite returns JSON string inside code fences
+      let content = data?.choices?.[0]?.message?.content || "";
 
-    // ✅ IBM Granite structure: choices[0].message.content
-    if (data?.choices?.[0]?.message?.content) {
-      try {
-        // Parse content if it’s JSON
-        const parsed = JSON.parse(data.choices[0].message.content);
+      // remove ```json ... ``` wrapper if present
+      content = content.replace(/```json|```/g, "").trim();
 
-        botMessage = (
-          <div className="bot-json">
-            <p><strong>{parsed.assistant_message}</strong></p>
+      // parse into object
+      const parsed = JSON.parse(content);
 
-            {parsed.explain && <p>💡 {parsed.explain}</p>}
+      // ✅ assistant message
+      botMessage = parsed.assistant_message || "⚠️ No assistant message found.";
 
-            {parsed.DATES && (
-              <div>
-                <h4>📅 Planned Schedule:</h4>
-                <ul>
-                  {Object.entries(parsed.DATES).map(([date, tasks]) => (
-                    <li key={date}>
-                      <strong>{date}</strong>
-                      <ul>
-                        {tasks.map((t, i) => (
-                          <li key={i}>
-                            {t.title} — {t.description} (Deadline:{" "}
-                            {new Date(t.original_deadline).toLocaleDateString()})
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        );
-      } catch (err) {
-        // If parsing fails, just show raw string
-        botMessage = data.choices[0].message.content;
+      // 👉 Handle dbquery actions
+      if (parsed.dbquery === "add" && parsed.DATES) {
+        console.log("🟢 DB ADD detected:", parsed.DATES);
+        Object.values(parsed.DATES).flat().forEach(async (task) => {
+          console.log("➡️ Adding task:", task);
+          const resp = await fetch("http://localhost:5000/api/users/:googleId/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: task.title,
+              date: task.planned_date_utc,
+            }),
+          });
+          console.log("✅ Add response:", await resp.json().catch(() => resp.status));
+        });
       }
-    } else {
-      // fallback if model returns plain text
-      botMessage =
-        data?.output?.text?.[0] ||
-        data?.results?.[0]?.generated_text ||
-        JSON.stringify(data, null, 2);
+
+      if (parsed.dbquery === "delete" && parsed.DATES) {
+        console.log("🟠 DB DELETE detected:", parsed.DATES);
+        Object.values(parsed.DATES).flat().forEach(async (task) => {
+          console.log("➡️ Deleting task with ID:", task._id);
+          const resp = await fetch(
+            "http://localhost:5000/api/users/:id/events/" + task._id,
+            { method: "DELETE" }
+          );
+          console.log("✅ Delete response:", await resp.json().catch(() => resp.status));
+        });
+      }
+    } catch (err) {
+      console.error("❌ Parse error:", err);
+      botMessage = "⚠️ Error parsing model response.";
     }
 
     addMessage(botMessage, false);
@@ -123,6 +119,7 @@ const handleSend = async () => {
     setIsTyping(false);
   }
 };
+
   return (
     <div className="app">
       <div className="chat-container">
