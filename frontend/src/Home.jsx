@@ -85,7 +85,7 @@ const Home = () => {
       <section className="hero">
         <div className="hero-background-animation"></div>
         <div className="hero-content">
-          <h1 className="hero-title">EduTech Connect</h1>
+          <h1 className="hero-title">ThinkSpira</h1>
           <p className="hero-subtitle">Revolutionizing education through AI-powered learning and community collaboration</p>
           <div className="hero-buttons">
             <button className="btn-primary pulse" onClick={getStarted}>Get Started</button>
@@ -164,9 +164,7 @@ const Home = () => {
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className="goal-icon-wrapper">
-                  <div className="goal-icon">
-                    <i className={goal.icon}></i>
-                  </div>
+                  
                 </div>
                 <h3>{goal.title}</h3>
                 <p>{goal.description}</p>
@@ -183,7 +181,7 @@ const Home = () => {
         <div className="container">
           <h2 className="cta-title">Ready to Transform Your Learning Journey?</h2>
           <p className="cta-subtitle">Join thousands of students advancing their education with our innovative platform.</p>
-          <button className="btn-primary glow">Sign Up Free</button>
+          <button className="btn-primary glow" onClick={getStarted}>Sign Up Free</button>
         </div>
       </section>
     </div>

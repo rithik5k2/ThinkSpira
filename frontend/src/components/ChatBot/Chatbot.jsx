@@ -1,7 +1,7 @@
 // Chatbot.jsx
 import React, { useState, useRef, useEffect } from "react";
 import "./Chatbot.css";
-
+import { CiPaperplane } from "react-icons/ci";
 // Simple Bot Model UI
 function BotModel({ isTyping }) {
   return (
@@ -36,6 +36,9 @@ function Chatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // 🔹 Get Google ID from localStorage (set after login)
+  const googleId = localStorage.getItem("googleId");
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -48,77 +51,113 @@ function Chatbot() {
     setMessages((prev) => [...prev, { text: message, isUser }]);
   };
 
-const handleSend = async () => {
-  if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
 
-  const userMessage = inputValue;
-  addMessage(userMessage, true);
-  setInputValue("");
-  setIsTyping(true);
+    const userMessage = inputValue;
+    addMessage(userMessage, true);
+    setInputValue("");
+    setIsTyping(true);
 
-  try {
-    const res = await fetch("http://localhost:5000/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: userMessage }),
+    try {
+      const res = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      const data = await res.json();
+
+      let botMessage = "";
+      try {
+        // 🟢 Granite returns JSON string inside code fences
+        let content = data?.choices?.[0]?.message?.content || "";
+
+        // remove ```json ... ``` wrapper if present
+        content = content.replace(/```json|```/g, "").trim();
+
+        // parse into object
+        const parsed = JSON.parse(content);
+
+        // ✅ assistant message
+        botMessage =
+          parsed.assistant_message || "⚠️ No assistant message found.";
+
+        // 👉 Handle dbquery actions
+        if (parsed.dbquery === "add" && parsed.DATES) {
+          console.log("🟢 DB ADD detected:", parsed.DATES);
+          Object.values(parsed.DATES)
+            .flat()
+            .forEach(async (task) => {
+              console.log("➡️ Adding task:", task);
+              const resp = await fetch(
+                `http://localhost:5000/api/users/google/${googleId}/events`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    title: task.title,
+                    date: task.planned_date_utc,
+                  }),
+                }
+              );
+              console.log(
+                "✅ Add response:",
+                await resp.json().catch(() => resp.status)
+              );
+            });
+        }
+        
+       if (parsed.dbquery === "delete" && parsed.DATES) {
+  console.log("🟠 DB DELETE detected:", parsed.DATES);
+
+  const tasks = Object.values(parsed.DATES).flat();
+  console.log("📦 Final tasks to delete:", tasks);
+
+  if (tasks.length === 0) {
+    console.warn("⚠️ No tasks found to delete.");
+  }
+
+  for (const task of tasks) {
+    console.log("➡️ Sending delete request with:", {
+      googleId,
+      title: task.title,
+      date: task.planned_date || task.planned_date_utc,
     });
 
-    const data = await res.json();
-
-    let botMessage = "";
     try {
-      // 🟢 Granite returns JSON string inside code fences
-      let content = data?.choices?.[0]?.message?.content || "";
+      const resp = await fetch(
+        `http://localhost:5000/api/users/google/${googleId}/events`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: task.title,
+            date: task.planned_date || task.planned_date_utc,
+          }),
+        }
+      );
 
-      // remove ```json ... ``` wrapper if present
-      content = content.replace(/```json|```/g, "").trim();
-
-      // parse into object
-      const parsed = JSON.parse(content);
-
-      // ✅ assistant message
-      botMessage = parsed.assistant_message || "⚠️ No assistant message found.";
-
-      // 👉 Handle dbquery actions
-      if (parsed.dbquery === "add" && parsed.DATES) {
-        console.log("🟢 DB ADD detected:", parsed.DATES);
-        Object.values(parsed.DATES).flat().forEach(async (task) => {
-          console.log("➡️ Adding task:", task);
-          const resp = await fetch("http://localhost:5000/api/users/:googleId/events", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: task.title,
-              date: task.planned_date_utc,
-            }),
-          });
-          console.log("✅ Add response:", await resp.json().catch(() => resp.status));
-        });
-      }
-
-      if (parsed.dbquery === "delete" && parsed.DATES) {
-        console.log("🟠 DB DELETE detected:", parsed.DATES);
-        Object.values(parsed.DATES).flat().forEach(async (task) => {
-          console.log("➡️ Deleting task with ID:", task._id);
-          const resp = await fetch(
-            "http://localhost:5000/api/users/:id/events/" + task._id,
-            { method: "DELETE" }
-          );
-          console.log("✅ Delete response:", await resp.json().catch(() => resp.status));
-        });
-      }
+      const result = await resp.json().catch(() => resp.status);
+      console.log("✅ Delete response:", result);
     } catch (err) {
-      console.error("❌ Parse error:", err);
-      botMessage = "⚠️ Error parsing model response.";
+      console.error("❌ Delete fetch error:", err);
     }
-
-    addMessage(botMessage, false);
-  } catch (err) {
-    addMessage("⚠️ Error: " + err.message, false);
-  } finally {
-    setIsTyping(false);
   }
-};
+}
+
+      } catch (err) {
+        console.error("❌ Parse error:", err);
+        botMessage = "⚠️ Error parsing model response.";
+      }
+
+      addMessage(botMessage, false);
+    } catch (err) {
+      addMessage("⚠️ Error: " + err.message, false);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div className="app">
@@ -166,7 +205,7 @@ const handleSend = async () => {
                 placeholder="Type your message here..."
               />
               <button onClick={handleSend}>
-                <i className="fas fa-paper-plane"></i>
+                <CiPaperplane />
               </button>
             </div>
           </div>

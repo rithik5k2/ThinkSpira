@@ -68,8 +68,8 @@ function Nav() {
           className="hexagon-icon"
           initial={{ rotateY: 0, rotateX: 0, rotateZ: 0 }}
           animate={{
-            top: expanded ? 195 : 37.5,
-            left: expanded ? 485 : 40,
+            top: expanded ? 195 : 35,
+            left: expanded ? 485 : 32,
             rotateY: expanded ? 13 : 0,
             rotateX: expanded ? 6 : 0,
             rotateZ: expanded ? -23 : 0,

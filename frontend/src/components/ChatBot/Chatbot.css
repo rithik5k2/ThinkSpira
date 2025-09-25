@@ -69,6 +69,8 @@
 }
 
 .content-area {
+  background-color: white;
+  opacity: 0.75;
   display: flex;
   flex: 1;
   height: calc(100% - 80px);

@@ -11,7 +11,7 @@ function Nav1() {
     { id: 1, label: 'Dashboard', icon: '📊', path: '/u/dashboard' },
     { id: 2, label: 'NewsFeed', icon: '📝', path: '/u/newsfeed' },
     { id: 3, label: 'ChatBot', icon: '🤖', path: '/u/chatbot' },
-    { id: 4, label: 'GroupChat', icon: '🛣', path: '/u/groupchat' },
+    { id: 4, label: 'About', icon: '🛣', path: '/u/about' },
     { id: 5, label: 'Alumini', icon: '⚙', path: '/u/alumini' },
   ];
 
@@ -74,8 +74,8 @@ function Nav1() {
           className="hexagon-icon"
           initial={{ rotateY: 0, rotateX: 0, rotateZ: 0 }}
           animate={{
-            top: expanded ? 190 : 37.5,
-            left: expanded ? 470 : 40,
+            top: expanded ? 190 : 32,
+            left: expanded ? 470 : 32,
             rotateY: expanded ? 13 : 0,
             rotateX: expanded ? 6 : 0,
             rotateZ: expanded ? -23 : 0,

@@ -21,7 +21,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login", // If login fails
+    failureRedirect: "http://localhost:3000/login",
     session: true,
   }),
   async (req, res) => {
@@ -38,8 +38,9 @@ router.get(
           { upsert: true, new: true }
         );
       }
-      // ✅ Redirect directly to Dashboard
-      res.redirect("http://localhost:3000/u/dashboard");
+
+      // ✅ Redirect to success route instead of dashboard
+      res.redirect("http://localhost:5000/auth/success");
     } catch (error) {
       console.error("Error in callback:", error);
       res.redirect("http://localhost:3000/login");
@@ -47,7 +48,29 @@ router.get(
   }
 );
 
-// Get logged-in user info
+// 🔹 New success route
+router.get("/success", (req, res) => {
+  if (!req.user) {
+    return res.redirect("http://localhost:3000/login");
+  }
+
+  const userData = {
+    _id: req.user._id,
+    googleId: req.user.id || req.user.googleId,
+    name: req.user.displayName || req.user.name,
+    email: req.user.emails?.[0]?.value,
+    photo: req.user.photos?.[0]?.value,
+  };
+
+  // Pass user data to frontend via query params
+  res.redirect(
+    `http://localhost:3000/u/dashboard?googleId=${userData.googleId}&name=${encodeURIComponent(
+      userData.name
+    )}&email=${encodeURIComponent(userData.email)}`
+  );
+});
+
+// Get logged-in user info (API call)
 router.get("/user", (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not logged in" });

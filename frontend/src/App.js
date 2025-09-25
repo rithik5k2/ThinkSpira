@@ -8,7 +8,6 @@ import {
   Link,
 } from "react-router-dom";
 import Layout from "./components/Layout";
-
 import "./App.css";
 import Home from "./Home";
 import Login from "./components/Login/Login";
@@ -16,7 +15,7 @@ import Register from "./components/Register";
 import NewsFeed from "./screens/newsfeed";
 import AuthProvider from "./ProtectedRoutes/AuthContext";
 import Dashboard from "./screens/dashboard";
-import GroupChat from "./components/GroupChat";
+import About from "./screens/about";
 import LayOut2 from "./components/LayOut2";
 import Chatbot from "./components/ChatBot/Chatbot";
 import Calendar from "./components/calender"; // fixed casing
@@ -145,7 +144,7 @@ function App() {
           <Route path="/u/" element={<LayOut2 />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="newsfeed" element={<NewsFeed />} />
-            <Route path="groupchat" element={<GroupChat />} />
+            <Route path="about" element={<About />} />
             <Route path="chatbot" element={<Chatbot />} />
             <Route path="alumini" element={<AlumniSpace/>}/>
           </Route>
