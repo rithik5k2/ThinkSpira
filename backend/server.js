@@ -9,6 +9,7 @@ import connectDB from "./dbms.js";
 import assignmentRoutes from "./routes/assignment.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
+import newsRoutes from "./routes/news.js"; // ✅ ADDED
 import configurePassport from "./config/passport.js";
 
 dotenv.config();
@@ -56,6 +57,7 @@ app.use(passport.session());
 app.use("/api/assignments", assignmentRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/news", newsRoutes); // ✅ ADDED
 
 // Health check route
 app.get("/api/health", (req, res) => {
