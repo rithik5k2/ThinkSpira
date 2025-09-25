@@ -11,7 +11,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/user.js";
 import newsRoutes from "./routes/news.js"; // ✅ ADDED
 import configurePassport from "./config/passport.js";
-
+import chatRouter from "./routes/chat.js"
 dotenv.config();
 
 connectDB();
@@ -58,7 +58,7 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/news", newsRoutes); // ✅ ADDED
-
+app.use("/api/chat",chatRouter);
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });

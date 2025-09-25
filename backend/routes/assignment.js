@@ -1,5 +1,5 @@
-const express = require("express");
-const { google } = require("googleapis");
+import express from "express";
+import { google } from "googleapis";
 
 const router = express.Router();
 
@@ -25,15 +25,15 @@ router.get("/", async (req, res) => {
 
     // 1. Test authentication first
     console.log("🔐 Testing Google authentication...");
-    const oauth2 = google.oauth2({ version: 'v2', auth });
+    const oauth2 = google.oauth2({ version: "v2", auth });
     const profile = await oauth2.userinfo.get();
     console.log("✅ Authenticated as:", profile.data.email);
 
-    // 2. Fetch all courses (remove teacherId filter to get all enrolled courses)
+    // 2. Fetch all courses
     console.log("📚 Fetching courses...");
     const coursesRes = await classroom.courses.list();
     const courses = coursesRes.data.courses || [];
-    
+
     console.log(`✅ Found ${courses.length} courses:`);
     courses.forEach((course, index) => {
       console.log(`   ${index + 1}. ${course.name} (${course.courseState})`);
@@ -41,10 +41,10 @@ router.get("/", async (req, res) => {
 
     if (courses.length === 0) {
       console.log("ℹ️ No courses found for this user");
-      return res.status(200).json([]); // Return empty array instead of error
+      return res.status(200).json([]);
     }
 
-    // 3. Fetch coursework for each course with error handling
+    // 3. Fetch coursework
     console.log("📝 Fetching coursework...");
     const assignmentsPromises = courses.map(async (course) => {
       try {
@@ -55,7 +55,7 @@ router.get("/", async (req, res) => {
 
         const works = worksRes.data.courseWork || [];
         console.log(`   ✅ Found ${works.length} assignments in ${course.name}`);
-        
+
         return works.map((w) => ({
           course: course.name,
           title: w.title,
@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
         }));
       } catch (error) {
         console.error(`   ❌ Error in ${course.name}:`, error.message);
-        return []; // Return empty array for this course if error
+        return [];
       }
     });
 
@@ -72,27 +72,24 @@ router.get("/", async (req, res) => {
     const allAssignments = assignmentsArrays.flat();
 
     console.log(`🎯 TOTAL ASSIGNMENTS: ${allAssignments.length}`);
-    
-    // Log each assignment found
     allAssignments.forEach((assignment, index) => {
       console.log(`   ${index + 1}. ${assignment.course}: ${assignment.title}`);
     });
 
     console.log("=== ✅ ASSIGNMENTS FETCH COMPLETE ===");
     res.status(200).json(allAssignments);
-
   } catch (err) {
     console.error("❌ ERROR fetching assignments:", {
       message: err.message,
       code: err.code,
-      response: err.response?.data
+      response: err.response?.data,
     });
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       message: "Error fetching assignments",
-      error: err.message 
+      error: err.message,
     });
   }
 });
 
-module.exports = router;
+export default router;

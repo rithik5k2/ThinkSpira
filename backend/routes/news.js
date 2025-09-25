@@ -34,7 +34,7 @@ router.get("/", async (req, res) => {
     const prompt = `Provide ${max} recent news articles about "${query}". 
 Return ONLY valid JSON array where each item has: title, description, and url.
 Be accurate and provide real recent news.
-Example: [{"title":"News Title","description":"Brief summary","url":"https://example.com"}]`;
+Example: [{"title":"News Title","description":"Brief summary","url":"https://example.com"}] `;
 
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",

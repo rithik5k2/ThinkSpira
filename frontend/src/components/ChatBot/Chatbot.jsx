@@ -1,8 +1,8 @@
-// App.jsx
-import React, { useState, useRef, useEffect } from 'react';
-import './Chatbot.css';
+// Chatbot.jsx
+import React, { useState, useRef, useEffect } from "react";
+import "./Chatbot.css";
 
-// Simple 3D component without complex dependencies
+// Simple Bot Model UI
 function BotModel({ isTyping }) {
   return (
     <div className="bot-model">
@@ -12,18 +12,7 @@ function BotModel({ isTyping }) {
         <div className="eye left-eye"></div>
         <div className="eye right-eye"></div>
       </div>
-      {isTyping && (
-        <div className="typing-3d">Typing...</div>
-      )}
-      <div className="floating-particles">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="particle" style={{
-            animationDelay: `${i * 0.5}s`,
-            left: `${20 + i * 15}%`,
-            top: `${30 + i * 10}%`
-          }}></div>
-        ))}
-      </div>
+      {isTyping && <div className="typing-3d">Typing...</div>}
     </div>
   );
 }
@@ -31,49 +20,21 @@ function BotModel({ isTyping }) {
 // Message Component
 function Message({ message, isUser }) {
   return (
-    <div className={`message ${isUser ? 'user' : 'bot'}`}>
+    <div className={`message ${isUser ? "user" : "bot"}`}>
       <div className="message-content">
-        <div className="avatar">
-          {isUser ? 'U' : 'B'}
-        </div>
-        <div className="text">
-          {message}
-        </div>
+        <div className="avatar">{isUser ? "U" : "B"}</div>
+        <div className="text">{message}</div>
       </div>
     </div>
   );
 }
 
-// Quick Options Component
-function QuickOptions({ options, onSelect }) {
-  return (
-    <div className="quick-options">
-      {options.map((option, index) => (
-        <button
-          key={index}
-          className="quick-option"
-          onClick={() => onSelect(option)}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// Main Chatbot Component
+// Main Chatbot
 function Chatbot() {
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
-
-  // Initial bot message
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     addBotMessage("Hello! I'm your student assistant. How can I help you today?");
-  //   }, 1000);
-  // }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -84,71 +45,84 @@ function Chatbot() {
   }, [messages]);
 
   const addMessage = (message, isUser) => {
-    setMessages(prev => [...prev, { text: message, isUser }]);
+    setMessages((prev) => [...prev, { text: message, isUser }]);
   };
 
-  const addBotMessage = (message) => {
-    addMessage(message, false);
-  };
+ 
+const handleSend = async () => {
+  if (!inputValue.trim()) return;
 
-  const addUserMessage = (message) => {
-    addMessage(message, true);
-  };
+  const userMessage = inputValue;
+  addMessage(userMessage, true);
+  setInputValue("");
 
-  const handleSend = () => {
-    if (inputValue.trim() === '') return;
-    
-    addUserMessage(inputValue);
-    setInputValue('');
-    
-    setIsTyping(true);
-    
-    // Simulate bot thinking
-    setTimeout(() => {
-      setIsTyping(false);
-      addBotMessage(getBotResponse(inputValue));
-    }, 1500);
-  };
+  setIsTyping(true);
 
-  const handleQuickOption = (option) => {
-    addUserMessage(option);
-    
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-      addBotMessage(getBotResponse(option));
-    }, 1500);
-  };
+  try {
+    const res = await fetch("http://localhost:5000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userMessage }),
+    });
 
-  const getBotResponse = (userMessage) => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-      return "Hi there! I'm here to help with your academic journey. What would you like to know?";
-    } else if (lowerMessage.includes('course') || lowerMessage.includes('registration')) {
-      return "Course registration typically opens two weeks before the semester begins. Make sure to check your academic requirements and consult with your advisor.";
-    } else if (lowerMessage.includes('study') || lowerMessage.includes('tip')) {
-      return "Effective study tips: create a schedule, use active recall, take regular breaks, and form study groups. What subject are you studying?";
-    } else if (lowerMessage.includes('campus') || lowerMessage.includes('resource')) {
-      return "The campus offers many resources: library, tutoring center, writing center, career services, and mental health support. Which one interests you?";
-    } else if (lowerMessage.includes('assignment') || lowerMessage.includes('deadline')) {
-      return "It's important to plan ahead for assignments. Break large projects into smaller tasks and set personal deadlines before the actual due date.";
-    } else if (lowerMessage.includes('thank')) {
-      return "You're welcome! Is there anything else I can help you with?";
+    const data = await res.json();
+    console.log("IBM Response:", data);
+
+    let botMessage = "";
+
+    // ✅ IBM Granite structure: choices[0].message.content
+    if (data?.choices?.[0]?.message?.content) {
+      try {
+        // Parse content if it’s JSON
+        const parsed = JSON.parse(data.choices[0].message.content);
+
+        botMessage = (
+          <div className="bot-json">
+            <p><strong>{parsed.assistant_message}</strong></p>
+
+            {parsed.explain && <p>💡 {parsed.explain}</p>}
+
+            {parsed.DATES && (
+              <div>
+                <h4>📅 Planned Schedule:</h4>
+                <ul>
+                  {Object.entries(parsed.DATES).map(([date, tasks]) => (
+                    <li key={date}>
+                      <strong>{date}</strong>
+                      <ul>
+                        {tasks.map((t, i) => (
+                          <li key={i}>
+                            {t.title} — {t.description} (Deadline:{" "}
+                            {new Date(t.original_deadline).toLocaleDateString()})
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      } catch (err) {
+        // If parsing fails, just show raw string
+        botMessage = data.choices[0].message.content;
+      }
     } else {
-      return "That's an interesting question! As a student assistant, I can help with course info, study tips, campus resources, and more. What specific area are you curious about?";
+      // fallback if model returns plain text
+      botMessage =
+        data?.output?.text?.[0] ||
+        data?.results?.[0]?.generated_text ||
+        JSON.stringify(data, null, 2);
     }
-  };
 
-  const quickOptions = [
-    "Course registration help",
-    "Study tips for exams",
-    "Campus resources",
-    "Assignment deadlines",
-    "Extracurricular activities"
-  ];
-
+    addMessage(botMessage, false);
+  } catch (err) {
+    addMessage("⚠️ Error: " + err.message, false);
+  } finally {
+    setIsTyping(false);
+  }
+};
   return (
     <div className="app">
       <div className="chat-container">
@@ -160,18 +134,18 @@ function Chatbot() {
             <span>Online</span>
           </div>
         </div>
-        
+
         <div className="content-area">
           <div className="messages-container">
             <div className="chat-messages">
               {messages.map((message, index) => (
-                <Message 
-                  key={index} 
-                  message={message.text} 
-                  isUser={message.isUser} 
+                <Message
+                  key={index}
+                  message={message.text}
+                  isUser={message.isUser}
                 />
               ))}
-              
+
               {isTyping && (
                 <div className="typing-indicator">
                   <div className="avatar">B</div>
@@ -182,23 +156,16 @@ function Chatbot() {
                   </div>
                 </div>
               )}
-              
-              {messages.length > 0 && messages[messages.length - 1].isUser && !isTyping && (
-                <QuickOptions 
-                  options={quickOptions} 
-                  onSelect={handleQuickOption} 
-                />
-              )}
-              
+
               <div ref={messagesEndRef} />
             </div>
-            
+
             <div className="chat-input">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type your message here..."
               />
               <button onClick={handleSend}>
@@ -206,7 +173,7 @@ function Chatbot() {
               </button>
             </div>
           </div>
-          
+
           <div className="bot-container">
             <BotModel isTyping={isTyping} />
           </div>

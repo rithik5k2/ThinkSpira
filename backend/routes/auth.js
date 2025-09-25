@@ -20,9 +20,9 @@ router.get(
 // Google OAuth callback
 router.get(
   "/google/callback",
-  passport.authenticate("google", { 
+  passport.authenticate("google", {
     failureRedirect: "http://localhost:3000/login", // If login fails
-    session: true 
+    session: true,
   }),
   async (req, res) => {
     try {
@@ -30,10 +30,10 @@ router.get(
       if (req.user && req.user.id) {
         await User.findOneAndUpdate(
           { googleId: req.user.id },
-          { 
+          {
             name: req.user.displayName,
             email: req.user.emails[0].value,
-            accessToken: req.user.accessToken
+            accessToken: req.user.accessToken,
           },
           { upsert: true, new: true }
         );
@@ -52,16 +52,16 @@ router.get("/user", (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not logged in" });
   }
-  
+
   const userData = {
     _id: req.user._id,
     googleId: req.user.id || req.user.googleId,
     name: req.user.displayName || req.user.name,
     email: req.user.emails?.[0]?.value,
     accessToken: req.user.accessToken,
-    photo: req.user.photos?.[0]?.value
+    photo: req.user.photos?.[0]?.value,
   };
-  
+
   console.log("🔑 User data sent to frontend:", userData);
   res.json(userData);
 });
