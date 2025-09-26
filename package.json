@@ -1,10 +1,29 @@
 {
-  "name": "myproj",
+  "name": "thinkspira",
+  "version": "1.0.0",
+  "description": "ThinkSpira - Educational Platform with Google Classroom Integration",
   "private": true,
   "scripts": {
-    "start": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+    "start": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\"",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\"",
+    "build": "npm run build --prefix frontend",
+    "build:backend": "echo 'Backend build completed'",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "production": "NODE_ENV=production concurrently \"npm start --prefix backend\" \"npm run build --prefix frontend && npx serve -s frontend/build -l 3000\"",
+    "vercel:deploy": "vercel --prod",
+    "vercel:dev": "vercel dev",
+    "vercel:env": "vercel env pull .env.local"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }

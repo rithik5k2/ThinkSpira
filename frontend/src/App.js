@@ -28,7 +28,8 @@ function App() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await fetch("http://localhost:5000/auth/user", {
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+        const response = await fetch(`${apiUrl}/auth/user`, {
           credentials: "include",
         });
         if (response.ok) {
@@ -47,7 +48,8 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/auth/logout", {
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+      await fetch(`${apiUrl}/auth/logout`, {
         credentials: "include",
       });
       setUser(null);
@@ -146,7 +148,7 @@ function App() {
             <Route path="newsfeed" element={<NewsFeed />} />
             <Route path="about" element={<About />} />
             <Route path="chatbot" element={<Chatbot />} />
-            <Route path="alumini" element={<AlumniSpace/>}/>
+            <Route path="alumini" element={<AlumniSpace />} />
           </Route>
 
           {/* Google Classroom Flow */}

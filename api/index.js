@@ -1,3 +1,4 @@
+// Vercel serverless function entry point
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -5,16 +6,15 @@ import rateLimit from "express-rate-limit";
 import passport from "passport";
 import session from "express-session";
 import bodyParser from "body-parser";
-import connectDB from "./dbms.js";
-import assignmentRoutes from "./routes/assignment.js";
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/user.js";
-import newsRoutes from "./routes/news.js"; // ✅ ADDED
-import configurePassport from "./config/passport.js";
-import chatRouter from "./routes/chat.js";
-dotenv.config();
+import connectDB from "../backend/dbms.js";
+import assignmentRoutes from "../backend/routes/assignment.js";
+import authRoutes from "../backend/routes/auth.js";
+import userRoutes from "../backend/routes/user.js";
+import newsRoutes from "../backend/routes/news.js";
+import configurePassport from "../backend/config/passport.js";
+import chatRouter from "../backend/routes/chat.js";
 
-connectDB();
+dotenv.config();
 
 const app = express();
 
@@ -25,17 +25,17 @@ app.use(limiter);
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// CORS configuration
+// CORS configuration for Vercel
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -48,7 +48,7 @@ app.use(
   })
 );
 
-// Session configuration
+// Session configuration for Vercel
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "secret",
@@ -56,9 +56,9 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -72,8 +72,9 @@ app.use(passport.session());
 app.use("/api/assignments", assignmentRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/news", newsRoutes); // ✅ ADDED
+app.use("/api/news", newsRoutes);
 app.use("/api/chat", chatRouter);
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
@@ -85,5 +86,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Connect to database
+connectDB();
+
+export default app;

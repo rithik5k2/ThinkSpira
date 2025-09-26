@@ -21,7 +21,9 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login",
+    failureRedirect: `${
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    }/login`,
     session: true,
   }),
   async (req, res) => {
@@ -40,10 +42,15 @@ router.get(
       }
 
       // ✅ Redirect to success route instead of dashboard
-      res.redirect("http://localhost:5000/auth/success");
+      const backendUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.BACKEND_URL || "http://localhost:5000";
+      res.redirect(`${backendUrl}/auth/success`);
     } catch (error) {
       console.error("Error in callback:", error);
-      res.redirect("http://localhost:3000/login");
+      res.redirect(
+        `${process.env.FRONTEND_URL || "http://localhost:3000"}/login`
+      );
     }
   }
 );
@@ -51,7 +58,9 @@ router.get(
 // 🔹 New success route
 router.get("/success", (req, res) => {
   if (!req.user) {
-    return res.redirect("http://localhost:3000/login");
+    return res.redirect(
+      `${process.env.FRONTEND_URL || "http://localhost:3000"}/login`
+    );
   }
 
   const userData = {
@@ -63,10 +72,16 @@ router.get("/success", (req, res) => {
   };
 
   // Pass user data to frontend via query params
+  const frontendUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.FRONTEND_URL || "http://localhost:3000";
+
   res.redirect(
-    `http://localhost:3000/u/dashboard?googleId=${userData.googleId}&name=${encodeURIComponent(
-      userData.name
-    )}&email=${encodeURIComponent(userData.email)}`
+    `${frontendUrl}/u/dashboard?googleId=${
+      userData.googleId
+    }&name=${encodeURIComponent(userData.name)}&email=${encodeURIComponent(
+      userData.email
+    )}`
   );
 });
 
